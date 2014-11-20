@@ -5,16 +5,16 @@ A 32-bit multi-cycle CPU.
 
 Operations supported:  
 
-NOOP  
+NOOP  
 MOV  
 NOT  
 ADD  
 SUB  
-OR  
-AND   
+OR  
+AND  
 XOR  
 SLT  
-J      
+J    
 BEQ  
 ADDI  
 SUBI  
