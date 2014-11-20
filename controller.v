@@ -51,12 +51,12 @@ module controller(state, next_state, clk, reset,
 					next_state = 1;
 					
 					// Control outputs
-					PCWrite		<= 1;
+					PCWrite		<= 0;
 					PCWriteCond	<= 0;
 					IorD			<= 0;
 					MemRead		<= 0;
 					MemWrite		<= 0;
-					IRWrite		<= 1;
+					IRWrite		<= 0;
 					MemtoReg		<= 0;
 					PCSource		<= 2'b00;
 					ALUOp			<= 2'b00;
