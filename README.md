@@ -14,7 +14,7 @@ OR
 AND  
 XOR  
 SLT  
-J    
+J  
 BEQ  
 ADDI  
 SUBI  
