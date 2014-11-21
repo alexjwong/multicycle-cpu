@@ -46,13 +46,14 @@ module datapath(write_enable, clk, reset,
 	wire			[31:0] read_data_1, read_data_2, read_sel_1, read_sel_2;
 	wire			[31:0] regA_out, regB_out;
 	wire			[31:0] alu_src_a, alu_src_b;
+	wire			[31:0] zero;
 	
 	
 	
 	output		reg[31:0] ALUOut;
 	
 	// IorD mux
-	nbit_mux #(DATA_SIZE) IorDMux(poop);
+	TwoOneMux #(DATA_SIZE) IorDMux(poop);
 	
 	// Instruction memory
 	IMem IMem(PC, instr_in);
@@ -85,20 +86,20 @@ module datapath(write_enable, clk, reset,
 										regB_out,							// Output
 										write_enable, reset, clk);
 		
-	// ALU Mux 1
+	// ALUSrcA Mux
 	TwoOneMux #(DATA_SIZE) ALUSrcA_MUX(alu_src_a, PC, regA_out, ALUSrcA);
 	
-	// ALU Mux 2
+	// ALUSrcB Mux
 	FourOneMux #(DATA_SIZE) ALUSrcB_MUX(alu_src_b, regB_out, 32'b1, se_out, ze_out, ALUSrcB);
 	
 	// ALU
-	ALU ALU(R1, R2, R3, ALUOp);
+	ALU ALU(ALU_out, alu_src_a, alu_src_b, ALUOp);
 	
 	// ALU Register
-	nbit_reg #(DATA_SIZE) ALUReg(nD, nQ, Write, reset, clk);
+	nbit_reg #(DATA_SIZE) ALUReg(ALU_out, ALUOut, write_enable, reset, clk);
 	
-	// WriteBack mux
-	nbit_mux #(DATA_SIZE) WBMux(ALUOut, PCSource);
+	// PCSource mux
+	FourOneMux #(DATA_SIZE) WBMux(pc_in, ALU_out, ALUOut, PCSource);
 
 	
 
