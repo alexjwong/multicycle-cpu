@@ -4,15 +4,15 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   00:13:04 11/24/2014
-// Design Name:   datapath
-// Module Name:   X:/EC 413/Final Project/Milestone3/datapath_test.v
+// Create Date:   23:45:40 11/23/2014
+// Design Name:   CPU
+// Module Name:   X:/EC 413/Final Project/Milestone3/cpu_test.v
 // Project Name:  Milestone3
 // Target Device:  
 // Tool versions:  
 // Description: 
 //
-// Verilog Test Fixture created by ISE for module: datapath
+// Verilog Test Fixture created by ISE for module: CPU
 //
 // Dependencies:
 // 
@@ -22,35 +22,37 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module datapath_test;
+module cpu_test;
 
 	// Inputs
 	reg clk;
 	reg reset;
-	reg PCWrite;
-	reg PCWriteCond;
-	reg IorD;
-	reg MemRead;
-	reg MemWrite;
-	reg IRWrite;
-	reg MemtoReg;
-	reg [1:0] PCSource;
-	reg [3:0] ALUOp;
-	reg [1:0] ALUSrcB;
-	reg ALUSrcA;
-	reg RegWrite;
-	reg RegDst;
 
 	// Outputs
-	wire [31:0] IReg_out;
-	wire [31:0] PCAddress;
+	wire [31:0] instr_in;
+	wire [3:0] state;
+	wire [3:0] next_state;
+	wire PCWrite;
+	wire PCWriteCond;
+	wire IorD;
+	wire MemRead;
+	wire MemWrite;
+	wire IRWrite;
+	wire MemtoReg;
+	wire [1:0] PCSource;
+	wire [3:0] ALUOp;
+	wire [1:0] ALUSrcB;
+	wire ALUSrcA;
+	wire RegWrite;
+	wire RegDst;
 	wire [31:0] ALUOut;
+	wire [31:0] PCAddress;
 
 	// Instantiate the Unit Under Test (UUT)
-	datapath uut (
-		.IReg_out(IReg_out), 
-		.PCAddress(PCAddress), 
-		.ALUOut(ALUOut), 
+	CPU uut (
+		.instr_in(instr_in), 
+		.state(state), 
+		.next_state(next_state), 
 		.clk(clk), 
 		.reset(reset), 
 		.PCWrite(PCWrite), 
@@ -65,7 +67,9 @@ module datapath_test;
 		.ALUSrcB(ALUSrcB), 
 		.ALUSrcA(ALUSrcA), 
 		.RegWrite(RegWrite), 
-		.RegDst(RegDst)
+		.RegDst(RegDst), 
+		.ALUOut(ALUOut), 
+		.PCAddress(PCAddress)
 	);
 	
 	// Initialize clock
@@ -76,19 +80,6 @@ module datapath_test;
 		// Initialize Inputs
 		clk = 0;
 		reset = 0;
-		PCWrite = 0;
-		PCWriteCond = 0;
-		IorD = 0;
-		MemRead = 0;
-		MemWrite = 0;
-		IRWrite = 0;
-		MemtoReg = 0;
-		PCSource = 0;
-		ALUOp = 0;
-		ALUSrcB = 0;
-		ALUSrcA = 0;
-		RegWrite = 0;
-		RegDst = 0;
 
 		// Wait 100 ns for global reset to finish
 		#100;

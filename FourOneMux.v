@@ -23,7 +23,7 @@ module FourOneMux(out, a, b, c, d, sel);
 	parameter	word_size = 32;
 	
 	input			[word_size-1:0] a,b,c,d;
-	input			sel;
+	input			[1:0] sel;
 	
 	output reg	[word_size-1:0] out;
 	

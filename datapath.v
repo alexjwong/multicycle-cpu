@@ -18,11 +18,9 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module datapath(clk, reset,
+module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 					PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst,
-					ALUOut);
-						
+					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst);						
 						
 	parameter	DATA_SIZE = 32;					// Instruction and data size is 32 bits
 	
@@ -35,47 +33,45 @@ module datapath(clk, reset,
 	input			[3:0] ALUOp;
 	
 	// Data wires
-	wire			[31:0] IReg_out, mdr_out, write_data, ALU_out, mem_data;
+	wire			[31:0] IMem_out, mdr_out, write_data, ALU_out, mem_data;
 	wire			[4:0] write_register;
 	wire			[31:0] se_out, ze_out;
-	wire			[31:0] read_data_1, read_data_2,
+	wire			[31:0] read_data_1, read_data_2;
 	wire			[31:0] regA_out, regB_out;
 	wire			[31:0] alu_src_a, alu_src_b;
 	wire			[31:0] zero;
 	wire			[31:0] PC_in;
+	output		[31:0] ALUOut;						// ALU output register
+
 	
 	
 	// Other
-	wire			[31:0] PCAddress;					// Program counter
-	wire			[31:0] instr_in;					// Instruction input
-	output reg	[31:0] ALUOut;						// ALU output register
+	output		[31:0] PCAddress;					// Program counter
+	output		[31:0] IReg_out;					// Instruction from IReg is given to Controller
 	
 	
 	
 	// Program Counter
 	ProgramCounter PC(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
 	
-	// IorD mux (DUNNO IF I NEED THIS)
-	TwoOneMux #(DATA_SIZE) IorDMux(PC_out, ALUOut, IorD);
-	
 	// Instruction memory
 	IMem IMem(PCAddress,													// Input
-					instr_in);												// Output
+					IMem_out);												// Output
 	
 	// Instruction Register
-	nbit_reg #(DATA_SIZE) InstrReg (instr_in,						// Input
+	nbit_reg #(DATA_SIZE) InstrReg(IMem_out,						// Input
 											IReg_out,						// Output
 											1'b1, reset, clk);
 	
 	// Data memory
-	DMem DMem(write_data,												// Input data into the memory
+	DMem DMem(regA_out,													// Input data into the memory (contents of r1)
 					mem_data,												// Output data from the memory
-					alu_src_b,												// Address of data to be read/written: memory location selected by ALUSrcB mux
+					IReg_out[15:0],										// Address of data to be read/written (always the 16-bit imm in the instr)
 					MemWrite,												// When high, causes write to take place on posedge
 					clk);
 	
 	// Memory Data Register
-	nbit_reg #(DATA_SIZE) MemoryDataRegister (mem_data, mdr_out, 1, reset, clk);
+	nbit_reg #(DATA_SIZE) MemoryDataRegister (mem_data, mdr_out, 1'b1, reset, clk);
 	
 	// write_data mux
 	TwoOneMux #(DATA_SIZE) MemtoRegMux(write_data, mdr_out, ALUOut, MemtoReg);
@@ -90,12 +86,12 @@ module datapath(clk, reset,
 	// Register A
 	nbit_reg #(DATA_SIZE) RegA (read_data_1,						// Input
 										regA_out,							// Output
-										1, reset, clk);
+										1'b1, reset, clk);
 	
 	// Register B
 	nbit_reg #(DATA_SIZE) RegB (read_data_2,						// Input
 										regB_out,							// Output
-										1, reset, clk);
+										1'b1, reset, clk);
 										
 	// Sign Extend and Zero Extend
 	signextend SignExtend (IReg_out[15:0], se_out);
@@ -113,10 +109,10 @@ module datapath(clk, reset,
 	// ALU Register
 	nbit_reg #(DATA_SIZE) ALUReg(ALU_out,							// Input
 											ALUOut,							// Output
-											1, reset, clk);
+											1'b1, reset, clk);
 	
 	// PCSource mux
-	FourOneMux #(DATA_SIZE) WBMux(pc_in, ALU_out, ALUOut, PCSource);
+	FourOneMux #(DATA_SIZE) WBMux(PC_in, ALU_out, ALUOut, {6'b0, IReg_out[25:0]}, 32'b0, PCSource);
 
 	
 
