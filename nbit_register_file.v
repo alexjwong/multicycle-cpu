@@ -1,7 +1,23 @@
-
-// This can be used to replace the original nbit_register_file in lab6.
-// In iSim you can actually expand this reg_file to view the contents in it. 
-
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    14:51:36 11/21/2014 
+// Design Name: 
+// Module Name:    nbit_register_file
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
 module nbit_register_file(write_data, 
                           read_data_1, read_data_2, 
                           read_sel_1, read_sel_2, 

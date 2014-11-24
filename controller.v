@@ -59,7 +59,7 @@ module controller(state, next_state, clk, reset,
 					IRWrite		<= 0;
 					MemtoReg		<= 0;
 					PCSource		<= 2'b00;
-					ALUOp			<= 2'b00;
+					ALUOp			<= 4'b0000;
 					ALUSrcB		<= 2'b01;
 					ALUSrcA		<= 0;
 					RegWrite		<= 0;
@@ -71,7 +71,7 @@ module controller(state, next_state, clk, reset,
 				4'd1: begin
 					ALUSrcA		<= 0;
 					ALUSrcB		<= 2'b11;
-					ALUOp			<= 2'b00;
+					ALUOp			<= 4'b0000;
 					
 					// 000000 NOOP
 					if (instr_in[31:26] == 6'b000000)
