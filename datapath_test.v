@@ -43,12 +43,14 @@ module datapath_test;
 
 	// Outputs
 	wire [31:0] IReg_out;
+	wire [31:0] IMem_out;
 	wire [31:0] PCAddress;
 	wire [31:0] ALUOut;
 
 	// Instantiate the Unit Under Test (UUT)
 	datapath uut (
 		.IReg_out(IReg_out), 
+		.IMem_out(IMem_out), 
 		.PCAddress(PCAddress), 
 		.ALUOut(ALUOut), 
 		.clk(clk), 

@@ -19,8 +19,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module ProgramCounter(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
-	// PC Control
-	// Keeps track of the Program Counter, and outputs the instruction from IMem.
 
 	input			clk, reset;
 	input			PCWrite, PCWriteCond;
@@ -28,8 +26,12 @@ module ProgramCounter(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
 	
 	output reg	[31:0] PCAddress;
 	
-	and (PCWriteCondandBranch, PCWriteCond, Branch);
+	and (PCWriteCondandBranch, PCWriteCond, 1'b1);
 	or (PCWriteorBranch, PCWriteCondandBranch, PCWrite);
+	
+	initial begin
+		PCAddress = 0;
+	end
 
 	always @ (posedge clk or posedge reset) begin
 		if (reset) begin

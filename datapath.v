@@ -18,7 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
+module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 					PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
 					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst);						
 						
@@ -44,9 +44,9 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	output		[31:0] ALUOut;						// ALU output register
 
 	
-	
 	// Other
 	output		[31:0] PCAddress;					// Program counter
+	output		[31:0] IMem_out;
 	output		[31:0] IReg_out;					// Instruction from IReg is given to Controller
 	
 	

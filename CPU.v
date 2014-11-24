@@ -38,6 +38,8 @@ module CPU(instr_in, state, next_state, clk, reset,
 	output		[31:0] instr_in;
 	output		[31:0] ALUOut;
 	output		[31:0] PCAddress;
+	
+	wire [31:0] IMem_reg;
 
 	
 	
@@ -47,7 +49,7 @@ module CPU(instr_in, state, next_state, clk, reset,
 						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst,
 						instr_in);
 						
-	datapath Datapath(instr_in, PCAddress, ALUOut, clk, reset,
+	datapath Datapath(instr_in, IMem_reg, PCAddress, ALUOut, clk, reset,
 						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
 						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst);
 
