@@ -98,10 +98,18 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 	zeroextend ZeroExtend (IReg_out[15:0], ze_out);
 	
 	// ALUSrcA Mux
-	TwoOneMux #(DATA_SIZE) ALUSrcA_MUX(alu_src_a, PCAddress, regA_out, ALUSrcA);
+	TwoOneMux #(DATA_SIZE) ALUSrcA_MUX(alu_src_a,				// Output
+													PCAddress,				// Input 0
+													regA_out,				// Input 1
+													ALUSrcA);				// Control line
 	
 	// ALUSrcB Mux
-	FourOneMux #(DATA_SIZE) ALUSrcB_MUX(alu_src_b, regB_out, 32'b1, se_out, ze_out, ALUSrcB);
+	FourOneMux #(DATA_SIZE) ALUSrcB_MUX(alu_src_b,				// Output
+													regB_out,				// Input 00
+													32'b1,					// Input 01
+													se_out,					// Input 10
+													ze_out,					// Input 11
+													ALUSrcB);				// Control line
 	
 	// ALU
 	ALU ALU(ALU_out, alu_src_a, alu_src_b, ALUOp);
@@ -112,7 +120,14 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 											1'b1, reset, clk);
 	
 	// PCSource mux
-	FourOneMux #(DATA_SIZE) WBMux(PC_in, ALU_out, ALUOut, {6'b0, IReg_out[25:0]}, 32'b0, PCSource);
+	FourOneMux #(DATA_SIZE) PCSourceMux(PC_in,					// Output (to PC)
+													ALU_out,					// Input 00 (ALU Wire out)
+													ALUOut,					// Input 01 (ALU Reg out)
+													{6'b0, IReg_out[25:0]}, // Input 10 (Jump address)
+													32'b0,					// (Unused input)
+													PCSource);				// Control line
+													
+	//FourOneMux #(DATA_SIZE) PCSourceMux(PC_in, ALU_out, ALUOut, PCAddress+1, 32'b0, PCSource);
 
 	
 

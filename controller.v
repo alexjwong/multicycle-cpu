@@ -41,6 +41,8 @@ module controller(state, next_state, clk, reset,
 				state <= next_state;
 	end
 	
+	// *** Its important to remember that changes take place AFTER the state changes.
+	
 	always @ (reset or state or instr_in) begin
 		if (reset)
 				next_state = 0;
@@ -51,24 +53,27 @@ module controller(state, next_state, clk, reset,
 					next_state = 1;
 					
 					// Control outputs
-					PCWrite		<= 0;
+					PCWrite		<= 1;			// *PC gets incremented after State 0 from PCSource set at earlier state
 					PCWriteCond	<= 0;
 					IorD			<= 0;
 					MemRead		<= 0;
 					MemWrite		<= 0;
 					IRWrite		<= 0;
 					MemtoReg		<= 0;
-					PCSource		<= 2'b00;
-					ALUOp			<= 4'b0000;
-					ALUSrcB		<= 2'b01;
-					ALUSrcA		<= 0;
+					PCSource		<= 2'b00;	// PCSource is default to ALU wire out
+					ALUOp			<= 4'b0010;	// State 0: use ADD to add 1 to current PC
+					ALUSrcB		<= 2'b01;	// +1
+					ALUSrcA		<= 0;			// Current PC
 					RegWrite		<= 0;
 					RegDst		<= 0;
+					
+					// PC GETS INCREMENTED AFTER STATE 0!! ALWAYS!!
 				
 				end
 					
 				// State 1: Instruction decode/register fetch
 				4'd1: begin
+					PCWrite		<= 0;			// Not writing to PC here
 					ALUSrcA		<= 0;
 					ALUSrcB		<= 2'b11;
 					ALUOp			<= 4'b0000;
@@ -82,50 +87,51 @@ module controller(state, next_state, clk, reset,
 						next_state = 6;
 						
 					// 01 Arithmetic/Logical R-type
-					else if (instr_in[31:30] == 2'b01)	//
+					else if (instr_in[31:30] == 2'b01)	// MOV, ADD, SUB, OR, AND, XOR, SLT
 						next_state = 4;
-					
+						
 					// 10 Branch (I-type)
 					else if (instr_in[31:30] == 2'b10)	// BEQ
 						next_state = 5;
 					
 					// 11 Arithmetic/Logical I-type
 					else if (instr_in[31:30] == 2'b11) begin
-						if (instr_in[29] == 1'b1) // LI, LUI, LWI, SWI
+						if ((instr_in[29:26] == 4'b1001) || (instr_in[29:26] == 4'b1010)) // LI, LUI
+							next_state = 11;
+						else if ((instr_in[29:26] == 4'b1011) || (instr_in[29:26] == 4'b1100))	// LWI, SWI, LW, SW
 							next_state = 2;
 						else	// ADDI, SUBI, ORI, ANDI, XORI, SLTI
 							next_state = 3;
 					end
 				end
 				
-				// State 2: Memory address computation
+				// State 2: Memory address computation (LWI, SWI prep)
 				4'd2: begin
 					ALUSrcA		<= 1;
 					ALUSrcB		<= 2'b10;
-					ALUOp			<= instr_in[29:26];
-				
-					if ((ALUOp[3:0] == 6'b1011)||(ALUOp[3:0] == 6'b1101))				// LWI or LW
+					ALUOp			<= 4'b0010;				// ALU add
+					
+					if ((instr_in[29:26] == 4'b1011) || (instr_in[29:26] == 4'b1101))				// LWI or LW
 						next_state = 7; 
-					else if ((ALUOp[3:0] == 6'b1100)||(ALUOp[3:0] == 6'b1110))		// SWI or SW
+					else if ((instr_in[29:26] == 4'b1100) || (instr_in[29:26] == 4'b1110))		// SWI or SW
 						next_state = 8; 
-					else if ((ALUOp[3:0] == 4'b1001) || (ALUOp[3:0] == 4'b1010))	// LI or LUI
-						next_state = 9;
+
 				end
 				
 				// State 3: I-Type execution
 				4'd3: begin
-					ALUSrcA		<= 1;
-					ALUSrcB		<= 2'b10;
-					ALUOp			<= instr_in[29:26];
+					ALUSrcA		<= 1;						// regA_out
+					ALUSrcB		<= 2'b10;				// IReg_out[15:0] - immediate
+					ALUOp			<= instr_in[29:26];	// ALU op determined by [29:26]
 				
 					next_state = 9;
 				end
 				
 				// State 4: R-type execution
 				4'd4: begin
-					ALUSrcA		<= 1;
-					ALUSrcB		<= 2'b00;
-					ALUOp			<= instr_in[29:26];
+					ALUSrcA		<= 1;						// regA_out
+					ALUSrcB		<= 2'b00;				// regB_out
+					ALUOp			<= instr_in[29:26];	// ALU op determined by [29:26]
 					
 					next_state = 9;
 				end
@@ -133,9 +139,9 @@ module controller(state, next_state, clk, reset,
 				// State 5: Branch completion
 				4'd5: begin
 					ALUSrcA		<= 1;
-					ALUSrcB		<= 2'b00;
+					ALUSrcB		<= 2'b00;				// 
 					PCWriteCond	<= 1;
-					PCSource		<= 2'b01;
+					PCSource		<= 2'b01;				// ALU reg out
 					ALUOp			<= instr_in[29:26];
 					
 					next_state = 0;
@@ -143,35 +149,34 @@ module controller(state, next_state, clk, reset,
 				
 				// State 6: Jump completion
 				4'd6: begin
-					PCWrite		<= 1;
-					PCSource		<= 2'b10;
-					ALUOp			<= instr_in[29:26];
+					PCWrite		<= 1;						// Writing to PC the jump address (imm)
+					PCSource		<= 2'b10;				// PCSource: Jump Address
+					// Don't need ALU
 					
 					next_state = 0;
 				end
 				
 				// State 7: Memory Access (LWI, LW)
 				4'd7: begin
-					PCWrite		<= 1;
-					PCSource		<= 2'b10;
-					ALUOp			<= instr_in[29:26];
+					MemRead		<= 1;						// R1 <- M[ZE(Imm)] (LWI)
+					IorD			<= 1;
 					
 					next_state = 10;
 				end
 				
 				// State 8: Memory Access (SWI, SW)
 				4'd8: begin
-					PCWrite		<= 1;
-					PCSource		<= 2'b10;
-					ALUOp			<= instr_in[29:26];
+					MemWrite		<= 1;						//
+					IorD			<= 1;
 					
 					next_state = 0;
 				end
 				
 				// State 9: I and R type completion
 				4'd9: begin
-					RegWrite		<= 1;
-					MemtoReg		<= 0;
+					RegDst		<= 1;						// Doesn't do anything. literally
+					RegWrite		<= 1;						// Enable writing to a Reg
+					MemtoReg		<= 0;						// Write contents of ALURegister to a Register
 					
 					next_state = 0;
 				end
@@ -184,6 +189,24 @@ module controller(state, next_state, clk, reset,
 					next_state = 0;
 				end
 				
+				// State 11: LI and LUI
+				4'd11: begin
+					// ALUSrcA - don't care, we are only moving ALUSrcB
+					ALUSrcB		<= 2'b11;				// ALUSrcB is the Zero extended immediate
+					ALUOp			<= instr_in[29:26];	// ALU has special instructions for LI and LUI.
+					
+					next_state = 12;
+				end
+				
+				// State 12: LI and LUI completion
+				4'd12: begin
+					RegWrite		<= 1;					// Enable writing to a Reg
+					RegDst		<= 1;					// Doesn't do anything. literally
+					MemtoReg		<= 0;					// MemtoReg remains 0 for Write ALUOut to reg (the immediate)
+					
+					next_state = 0;
+				end
+					
 				default: next_state = state;
 		endcase
 	end
