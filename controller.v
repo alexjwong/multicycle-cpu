@@ -20,14 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 module controller(state, next_state, clk, reset,
 						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType,
 						instr_in);
 						
 	input						clk, reset;
 	input			[31:0]	instr_in;
 	output reg	[3:0]		state, next_state;
 	output reg				PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-								ALUSrcA, RegWrite, RegDst;
+								ALUSrcA, RegWrite, RegDst, BranchType;
 	output reg	[1:0]		PCSource, ALUSrcB;
 	output reg	[3:0]		ALUOp;
 	
@@ -66,6 +66,7 @@ module controller(state, next_state, clk, reset,
 					ALUSrcA		<= 0;			// Current PC
 					RegWrite		<= 0;
 					RegDst		<= 0;
+					BranchType	<= 0;
 					
 					// PC GETS INCREMENTED AFTER STATE 0!! ALWAYS!!
 				
@@ -138,12 +139,9 @@ module controller(state, next_state, clk, reset,
 				
 				// State 5: Branch completion
 				4'd5: begin
-					ALUSrcA		<= 1;
-					ALUSrcB		<= 2'b00;				// 
-					PCWriteCond	<= 1;
-					PCSource		<= 2'b01;				// ALU reg out
-					ALUOp			<= instr_in[29:26];
-					
+					PCWrite		<= 1;						// Write after this state
+					BranchType	<= 1;						// BranchControl controls Branch logic and PCSource
+
 					next_state = 0;
 				end
 				
@@ -166,8 +164,8 @@ module controller(state, next_state, clk, reset,
 				
 				// State 8: Memory Access (SWI, SW)
 				4'd8: begin
-					MemWrite		<= 1;						//
-					IorD			<= 1;
+					MemWrite		<= 1;						// Writing to memory
+					IorD			<= 1;						// Get addresss from ALUOut
 					
 					next_state = 0;
 				end

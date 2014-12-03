@@ -46,12 +46,12 @@ module CPU(instr_in, state, next_state, clk, reset,
 	// Initialize the controller and the datapath that constitute the CPU
 	controller Controller(state, next_state, clk, reset,
 						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType,
 						instr_in);
 						
 	datapath Datapath(instr_in, IMem_reg, PCAddress, ALUOut, clk, reset,
 						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst);
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType);
 
 
 endmodule

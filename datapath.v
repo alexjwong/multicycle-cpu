@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 					PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst);						
+					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType);						
 						
 	parameter	DATA_SIZE = 32;					// Instruction and data size is 32 bits
 	
@@ -28,7 +28,7 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 	
 	// Control Lines
 	input			PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, RegDst;
+					ALUSrcA, RegWrite, RegDst, BranchType;
 	input			[1:0] PCSource, ALUSrcB;
 	input			[3:0] ALUOp;
 	
@@ -41,6 +41,8 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 	wire			[31:0] alu_src_a, alu_src_b;
 	wire			[31:0] zero;
 	wire			[31:0] PC_in;
+	wire			Branch;
+	wire			[1:0] BPCOut;
 	output		[31:0] ALUOut;						// ALU output register
 
 	
@@ -118,17 +120,24 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 	nbit_reg #(DATA_SIZE) ALUReg(ALU_out,							// Input
 											ALUOut,							// Output
 											1'b1, reset, clk);
+											
+	// Branch Control
+	BranchControl #(DATA_SIZE) BranchCtrl(Branch,				// Output
+														regA_out,			// Input
+														regB_out,			// Input
+														BranchType);		// Control line
+	
+	// Branch/PCSource Mux
+	TwoOneMux #(2) BranchorPCSource(BPCOut, PCSource, 2'b11, Branch);	// If Branch control is true, output 2'b11 to select SE(Imm) on PCSource mux
+																				// If Branch control is false, just pass through PCSource
 	
 	// PCSource mux
 	FourOneMux #(DATA_SIZE) PCSourceMux(PC_in,					// Output (to PC)
 													ALU_out,					// Input 00 (ALU Wire out)
 													ALUOut,					// Input 01 (ALU Reg out)
 													{6'b0, IReg_out[25:0]}, // Input 10 (Jump address)
-													32'b0,					// (Unused input)
-													PCSource);				// Control line
-													
-	//FourOneMux #(DATA_SIZE) PCSourceMux(PC_in, ALU_out, ALUOut, PCAddress+1, 32'b0, PCSource);
-
+													se_out,					// Input 11 - SE(Imm) Used for Branch
+													BPCOut);					// Control line
 	
 
 endmodule
