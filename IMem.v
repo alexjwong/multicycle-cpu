@@ -229,17 +229,17 @@ module IMem(PC,          // PC (address) of instruction in IMem
 			// LI $R21, 0x0004
 			27: Instruction= 32'b111001_10101_00000_0000000000000100;
 			// BEQ $R20, $R21, 2
-			28: Instruction= 32'b100000_10100_10101_0000000000011111;
+			28: Instruction= 32'b100000_10100_10101_0000000000000010;
 			// ADDI $R20, $R20, 1
 			29: Instruction= 32'b110010_10100_10100_0000000000000001;
 			// J -3
-			30: Instruction= 32'b000001_00000_00000_0000000000011100;
+			30: Instruction= 32'b000001_11111_11111_1111111111111101;
 			// LI $R22, 0xFFFF - indicate loop finished
 			31: Instruction= 32'b111001_10110_00000_1111111111111111;
-			// BNE $R20, $21, 35 - will not branch b/c they should be the same
-			32: Instruction= 32'b100000_10100_10101_0000000000100011;
-			// BNE $R20, $21, 35 - will branch
-			33: Instruction= 32'b100000_10100_10101_0000000000100011;
+			// BNE $R20, $21, 2 - will not branch b/c they should be the same
+			32: Instruction= 32'b100000_10100_10101_0000000000000010;
+			// BNE $R20, $21, 1 - will branch
+			33: Instruction= 32'b100000_10100_10101_0000000000100001;
 			// NOOP
 			34: Instruction= 32'b000000_00000_00000_0000000000000000;
 			// LI $R23, 0xFFFF

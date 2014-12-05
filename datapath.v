@@ -43,7 +43,7 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	wire			[31:0] read_data_1, read_data_2;
 	output			[31:0] regA_out, regB_out;
 	output		[31:0] alu_src_a, alu_src_b;
-	wire			[31:0] zero;
+	wire			[31:0] JumpOffset;
 	output				Branch;
 	output			[31:0] PC_in;
 	output		[1:0] PC_source;
@@ -144,7 +144,10 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	nbit_reg #(DATA_SIZE) ALUReg(ALU_out,							// Input
 											ALUOut,							// Output
 											1'b1, reset, clk);
-											
+	
+	// Jump Address
+	JumpAddress JumpSignExtend(IReg_out[25:0], JumpOffset);
+	
 	// Branch Control
 	BranchControl #(DATA_SIZE) BranchCtrl(Branch,			// Output
 														regA_out,			// Input
@@ -158,8 +161,8 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	FourOneMux #(DATA_SIZE) PCSourceMux(PC_in,					// Output (to PC)
 													ALU_out,					// Input 00 (ALU Wire out)
 													ALUOut,					// Input 01 (ALU Reg out)
-													{6'b0, IReg_out[25:0]}, // Input 10 (Jump address)
-													se_out,					// Input 11 (Branch Address)
+													JumpOffset + PCAddress, // Input 10 (Jump address)
+													(se_out) + PCAddress,					// Input 11 (Branch Address)
 													PC_source);				// Control line
 
 endmodule
