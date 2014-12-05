@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module controller(state, next_state, clk, reset,
-						PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI,
+						PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI, SW,
 						instr_in);
 						
 						// PCWriteCond not used
@@ -29,8 +29,8 @@ module controller(state, next_state, clk, reset,
 	input						clk, reset;
 	input			[31:0]	instr_in;
 	output reg	[3:0]		state, next_state;
-	output reg				PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-								ALUSrcA, RegWrite, BranchType, LUI;
+	output reg				PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
+								ALUSrcA, RegWrite, BranchType, LUI, SW;
 	output reg	[1:0]		PCSource, ALUSrcB;
 	output reg	[3:0]		ALUOp;
 	
@@ -57,7 +57,6 @@ module controller(state, next_state, clk, reset,
 					
 					// Control outputs
 					PCWrite		<= 1;			// *PC gets incremented after State 0 from PCSource set at earlier state
-					IorD			<= 0;
 					MemRead		<= 1;			// Only fetch instruction from IMem after state 0 - this is the IReg enable
 					MemWrite		<= 0;
 					IRWrite		<= 0;
@@ -69,6 +68,7 @@ module controller(state, next_state, clk, reset,
 					RegWrite		<= 0;
 					BranchType	<= 0;
 					LUI			<= 0;
+					SW				<= 0;
 					
 					// PC GETS INCREMENTED AFTER STATE 0!! ALWAYS!!
 				
@@ -119,8 +119,10 @@ module controller(state, next_state, clk, reset,
 					
 					if ((instr_in[29:26] == 4'b1011) || (instr_in[29:26] == 4'b1101))				// LWI or LW
 						next_state = 7; 
-					else if ((instr_in[29:26] == 4'b1100) || (instr_in[29:26] == 4'b1110))		// SWI or SW
+					else if ((instr_in[29:26] == 4'b1100) || (instr_in[29:26] == 4'b1110)) begin	// SWI or SW
 						next_state = 8; 
+						SW			= 1;						// Raise SW flag to read from R1
+					end
 
 				end
 				
@@ -162,7 +164,6 @@ module controller(state, next_state, clk, reset,
 				// State 7: Memory Access (LWI, LW)
 				4'd7: begin
 					MemRead		<= 1;						// R1 <- M[ZE(Imm)] (LWI)
-					IorD			<= 1;
 					
 					next_state = 10;
 				end
@@ -170,7 +171,6 @@ module controller(state, next_state, clk, reset,
 				// State 8: Memory Access (SWI, SW)
 				4'd8: begin
 					MemWrite		<= 1;						// Writing to memory
-					IorD			<= 1;						// Get addresss from ALUOut
 					
 					next_state = 0;
 				end

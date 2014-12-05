@@ -207,11 +207,11 @@ module IMem(PC,          // PC (address) of instruction in IMem
 			// LWI and SWI, test corner cases
 			//
 			
-			// SWI  $R3, [0x0000] (store 1 at address 0)
+			// SWI  $R3, [0x0000] (store $R3 (value of 1) at address 0)
 			20: Instruction= 32'b111100_00011_00000_0000000000000000;
-			// SWI  $R4, [0x0000] (overwrite value of 1 with 0xFFFFFFFE at address 0)
+			// SWI  $R4, [0x0000] (overwrite value of 1 with $R4 (0xFFFFFFFE) at address 0)
 			21: Instruction= 32'b111100_00100_00000_0000000000000000;
-			// SWI  $R5, [0xFFFF] (store 0xFFFFFFFF at address 0xFFFF)
+			// SWI  $R5, [0xFFFF] (store 0xFFFFFFFF at address 15)
 			22: Instruction= 32'b111100_00101_00000_0000000000001111;
 			// LWI  $R19, [0x0000] (load 0xFFFFFFFE)
 			23: Instruction= 32'b111011_10011_00000_0000000000000000;

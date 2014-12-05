@@ -21,7 +21,8 @@
 module nbit_register_file(write_data, 
                           read_data_1, read_data_2, 
                           read_sel_1, read_sel_2, 
-                          write_address, RegWrite, clk, LUI);
+                          write_address, RegWrite, clk,
+								  LUI);
                           
     parameter data_width = 32;
     parameter select_width = 5; 
@@ -41,10 +42,8 @@ module nbit_register_file(write_data,
         end     
     end
     
-
 	 assign		read_data_1 = register_file[read_sel_1];
 	 assign		read_data_2 = register_file[read_sel_2];
-
     
     always @ (posedge clk) begin
         if (RegWrite) begin

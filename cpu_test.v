@@ -36,7 +36,6 @@ module cpu_test;
 	wire [31:0] PCAddress;
 	wire PCWrite;
 	wire BranchType;
-	wire IorD;
 	wire MemRead;
 	wire MemWrite;
 	wire IRWrite;
@@ -52,6 +51,7 @@ module cpu_test;
 	wire [31:0] write_data;
 	wire RegWrite;
 	wire LUI;
+	wire SW;
 	wire [31:0] ALUOut;
 	wire [31:0] ALU_out;
 	
@@ -67,7 +67,6 @@ module cpu_test;
 		.reset(reset), 
 		.PCWrite(PCWrite), 
 		.BranchType(BranchType),
-		.IorD(IorD), 
 		.MemRead(MemRead), 
 		.MemWrite(MemWrite), 
 		.IRWrite(IRWrite), 
@@ -84,7 +83,8 @@ module cpu_test;
 		.ALU_out(ALU_out),
 		.ALUOut(ALUOut),
 		.RegWrite(RegWrite), 
-		.LUI(LUI)
+		.LUI(LUI),
+		.SW(SW)
 	);
 	
 	// Initialize clock
