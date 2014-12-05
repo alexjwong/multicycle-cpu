@@ -51,10 +51,14 @@ module cpu_test;
 	wire [31:0] write_data;
 	wire RegWrite;
 	wire LUI;
-	wire SW;
+	wire SWB;
 	wire [31:0] ALUOut;
 	wire [31:0] ALU_out;
-	
+	wire [31:0] regA_out;
+	wire [31:0] regB_out;
+	wire [31:0] PC_in;
+	wire [1:0] PC_source;
+	wire Branch;
 
 	// Instantiate the Unit Under Test (UUT)
 	CPU uut (
@@ -84,7 +88,12 @@ module cpu_test;
 		.ALUOut(ALUOut),
 		.RegWrite(RegWrite), 
 		.LUI(LUI),
-		.SW(SW)
+		.SWB(SWB),
+		.regA_out(regA_out), 
+		.regB_out(regB_out), 
+		.PC_in(PC_in), 
+		.PC_source(PC_source), 
+		.Branch(Branch)
 	);
 	
 	// Initialize clock

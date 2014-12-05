@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 					PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI, SW,
-					alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out);						// debug outputs
+					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI, SWB, Branch,
+					alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out, regA_out, regB_out, PC_in, PC_source);						// debug outputs
 						
 	parameter	DATA_SIZE = 32;					// Instruction and data size is 32 bits
 	
@@ -29,7 +29,7 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	
 	// Control Lines
 	input			PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, BranchType, LUI, SW;
+					ALUSrcA, RegWrite, BranchType, LUI, SWB;
 	input			[1:0] PCSource, ALUSrcB;
 	input			[3:0] ALUOp;
 	
@@ -38,14 +38,14 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	output		[31:0] write_data;
 	wire			[4:0] write_register;
 	output			[31:0] se_out, ze_out;
-	wire			[4:0] readsel;
+	wire			[4:0] readsel1, readsel2;
 	wire			[31:0] read_data_1, read_data_2;
-	wire			[31:0] regA_out, regB_out;
+	output			[31:0] regA_out, regB_out;
 	output		[31:0] alu_src_a, alu_src_b;
 	wire			[31:0] zero;
-	wire			[31:0] PC_in;
-	wire			Branch;
-	wire			[1:0] BPCOut;
+	output				Branch;
+	output			[31:0] PC_in;
+	output		[1:0] PC_source;
 	output		[31:0] ALU_out;					// ALU output wire
 	output		[31:0] ALUOut;						// ALU output register
 
@@ -67,7 +67,7 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	// Instruction Register
 	nbit_reg #(DATA_SIZE) InstrReg(IMem_out,						// Input
 											IReg_out,						// Output
-											MemRead,						// Enable
+											IRWrite,							// Enable
 											reset, clk);
 	
 	// Data memory
@@ -88,16 +88,22 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 													mdr_out,					// Input 1
 													MemtoReg);				// Control line
 													
-	// read_sel_1 mux - If instr is SWI/SW, read_sel_1 is R1, not R2
-	TwoOneMux #(5) ReadSelMux(readsel,								// Output
+	// read_sel_1 mux - If instr is SWI/SW or branch, read_sel_1 is R1, not R2
+	TwoOneMux #(5) ReadSel1Mux(readsel1,							// Output
 										IReg_out[20:16],					// Input 0
 										IReg_out[25:21],					// Input 1
-										SW);									// Control line
+										SWB);									// Control line
+	
+	// read_sel_2 mux - If instr
+	TwoOneMux #(5) ReadSel2Mux(readsel2,							// Output
+										IReg_out[15:11],					// Input 0
+										IReg_out[20:16],					// Input 1
+										SWB);									// Control line
 	
 	// Register file
 	nbit_register_file #(DATA_SIZE) RegisterFile(write_data,									// Input
 																read_data_1, read_data_2,				// Output
-																readsel, IReg_out[15:11],				// Input (readsel, r3(5)) NOTE: readsel is always R2 except for during SW
+																readsel1, readsel2,						// Input (readsel, r3(5)) NOTE: readsel is always R2 except for during SW
 																IReg_out[25:21],							// Input: write_register: r1(5) always bits 25-21
 																RegWrite, clk,
 																LUI);											// LUI control for writing to reg
@@ -139,22 +145,20 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 											1'b1, reset, clk);
 											
 	// Branch Control
-	BranchControl #(DATA_SIZE) BranchCtrl(Branch,				// Output
+	BranchControl #(DATA_SIZE) BranchCtrl(Branch,			// Output
 														regA_out,			// Input
 														regB_out,			// Input
-														BranchType);		// Control line
-	
+														BranchType, clk);		// Control line	
 	// Branch/PCSource Mux
-	TwoOneMux #(2) BranchorPCSource(BPCOut, PCSource, 2'b11, Branch);	// If Branch control is true, output 2'b11 to select SE(Imm) on PCSource mux
-																				// If Branch control is false, just pass through PCSource
+	TwoOneMux #(2) BranchorPCSource(PC_source, PCSource, 2'b11, Branch); // If Branch control is true, output 2'b11 to select SE(Imm) on PCSource mux
+	// If Branch control is false, just pass through PCSource
 	
 	// PCSource mux
 	FourOneMux #(DATA_SIZE) PCSourceMux(PC_in,					// Output (to PC)
 													ALU_out,					// Input 00 (ALU Wire out)
 													ALUOut,					// Input 01 (ALU Reg out)
 													{6'b0, IReg_out[25:0]}, // Input 10 (Jump address)
-													se_out,					// Input 11 - SE(Imm) Used for Branch
-													BPCOut);					// Control line
-	
+													se_out,					// Input 11 (Branch Address)
+													PC_source);				// Control line
 
 endmodule

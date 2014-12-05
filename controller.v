@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module controller(state, next_state, clk, reset,
 						PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI, SW,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI, SWB,
 						instr_in);
 						
 						// PCWriteCond not used
@@ -30,8 +30,8 @@ module controller(state, next_state, clk, reset,
 	input			[31:0]	instr_in;
 	output reg	[3:0]		state, next_state;
 	output reg				PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-								ALUSrcA, RegWrite, BranchType, LUI, SW;
-	output reg	[1:0]		PCSource, ALUSrcB;
+								ALUSrcA, RegWrite, LUI, SWB;
+	output reg	[1:0]		PCSource, ALUSrcB, BranchType;
 	output reg	[3:0]		ALUOp;
 	
 	initial begin
@@ -57,18 +57,18 @@ module controller(state, next_state, clk, reset,
 					
 					// Control outputs
 					PCWrite		<= 1;			// *PC gets incremented after State 0 from PCSource set at earlier state
-					MemRead		<= 1;			// Only fetch instruction from IMem after state 0 - this is the IReg enable
-					MemWrite		<= 0;
-					IRWrite		<= 0;
+					MemRead		<= 0;			
+					MemWrite		<= 0;			// Only fetch instruction from IMem after state 0 - this is the IReg enable
+					IRWrite		<= 1;
 					MemtoReg		<= 0;
 					PCSource		<= 2'b00;	// PCSource is default to ALU wire out
 					ALUOp			<= 4'b0010;	// State 0: use ADD to add 1 to current PC
 					ALUSrcB		<= 2'b01;	// +1
 					ALUSrcA		<= 0;			// Current PC
 					RegWrite		<= 0;
-					BranchType	<= 0;
+					BranchType	<= 2'b00;
 					LUI			<= 0;
-					SW				<= 0;
+					SWB			<= 0;
 					
 					// PC GETS INCREMENTED AFTER STATE 0!! ALWAYS!!
 				
@@ -80,14 +80,14 @@ module controller(state, next_state, clk, reset,
 					ALUSrcA		<= 0;
 					ALUSrcB		<= 2'b11;
 					ALUOp			<= 4'b0000;
-					MemRead		<= 0;
+					IRWrite		<= 0;
 					
 					// 000000 NOOP
 					if (instr_in[31:26] == 6'b000000)
 						next_state = 0;
 					
 					// 00 Jump
-					if (instr_in[31:30] == 2'b00)
+					else if (instr_in[31:30] == 2'b00)
 						next_state = 6;
 						
 					// 01 Arithmetic/Logical R-type
@@ -95,9 +95,12 @@ module controller(state, next_state, clk, reset,
 						next_state = 4;
 						
 					// 10 Branch (I-type)
-					else if (instr_in[31:30] == 2'b10)	// BEQ
+					else if (instr_in[31:30] == 2'b10) begin	// BEQ
 						next_state = 5;
-					
+						SWB		  = 1;						// Raise the StoreWord/Branch flag for read selects into the reg file
+						
+					end
+						
 					// 11 Arithmetic/Logical I-type
 					else if (instr_in[31:30] == 2'b11) begin
 						if (instr_in[29:26] == 4'b1001) // LI
@@ -121,7 +124,7 @@ module controller(state, next_state, clk, reset,
 						next_state = 7; 
 					else if ((instr_in[29:26] == 4'b1100) || (instr_in[29:26] == 4'b1110)) begin	// SWI or SW
 						next_state = 8; 
-						SW			= 1;						// Raise SW flag to read from R1
+						SWB			= 1;						// Raise SWB flag to read from R1
 					end
 
 				end
@@ -147,7 +150,7 @@ module controller(state, next_state, clk, reset,
 				// State 5: Branch completion
 				4'd5: begin
 					PCWrite		<= 1;						// Write after this state
-					BranchType	<= 1;						// BranchControl controls Branch logic and PCSource
+					BranchType	<= 2'b01;				// BranchControl controls Branch logic and PCSource
 
 					next_state = 0;
 				end

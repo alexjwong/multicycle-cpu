@@ -21,7 +21,8 @@
 module ProgramCounter(PCAddress, PCWrite, BranchType, Branch, PC_in, clk, reset);
 
 	input			clk, reset;
-	input			PCWrite, BranchType, Branch;
+	input			PCWrite, Branch;
+	input			BranchType;
 	input			[31:0] PC_in;									// Predetermined PC input (output of the PCSource mux)
 	
 	output reg	[31:0] PCAddress;
