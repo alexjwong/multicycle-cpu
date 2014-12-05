@@ -18,52 +18,63 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
-					PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType);						
+module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
+					PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+					PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI,
+					alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out);						// debug outputs
 						
 	parameter	DATA_SIZE = 32;					// Instruction and data size is 32 bits
 	
 	input			clk, reset;
 	
 	// Control Lines
-	input			PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, RegDst, BranchType;
+	input			PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+					ALUSrcA, RegWrite, BranchType, LUI;
 	input			[1:0] PCSource, ALUSrcB;
 	input			[3:0] ALUOp;
 	
 	// Data wires
-	wire			[31:0] IMem_out, mdr_out, write_data, ALU_out, mem_data;
+	wire			[31:0] mdr_out, mem_data;
+	output		[31:0] write_data;
 	wire			[4:0] write_register;
-	wire			[31:0] se_out, ze_out;
+	output			[31:0] se_out, ze_out;
 	wire			[31:0] read_data_1, read_data_2;
 	wire			[31:0] regA_out, regB_out;
-	wire			[31:0] alu_src_a, alu_src_b;
+	output		[31:0] alu_src_a, alu_src_b;
 	wire			[31:0] zero;
 	wire			[31:0] PC_in;
 	wire			Branch;
 	wire			[1:0] BPCOut;
+	output		[31:0] ALU_out;					// ALU output wire
 	output		[31:0] ALUOut;						// ALU output register
 
 	
 	// Other
 	output		[31:0] PCAddress;					// Program counter
-	output		[31:0] IMem_out;
+	wire			[31:0] Address;					// Address coming out of the IorD Mux
 	output		[31:0] IReg_out;					// Instruction from IReg is given to Controller
+	output		[31:0] IMem_out;					// Instruction Memory out. only outputs on state 0
 	
 	
 	
-	// Program Counter
-	ProgramCounter PC(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
+	// Program Counter - Also contains Instruction Memory
+	ProgramCounter PC(PCAddress, PCWrite, BranchType, Branch, PC_in, clk, reset);
 	
-	// Instruction memory
-	IMem IMem(PCAddress,													// Input
+	// IorD Mux
+	TwoOneMux #(DATA_SIZE) IorDMux(Address,						// Output
+												PCAddress,					// Input 0
+												ALUOut,						// Input 1
+												IorD);						// Control line
+												
+	// Instruction Memory
+	IMem IMem(Address,													// Input
 					IMem_out);												// Output
 	
 	// Instruction Register
 	nbit_reg #(DATA_SIZE) InstrReg(IMem_out,						// Input
 											IReg_out,						// Output
-											1'b1, reset, clk);
+											MemRead,							// Enable
+											reset, clk);
 	
 	// Data memory
 	DMem DMem(regA_out,													// Input data into the memory (contents of r1)
@@ -73,17 +84,23 @@ module datapath(IReg_out, IMem_out, PCAddress, ALUOut, clk, reset,
 					clk);
 	
 	// Memory Data Register
-	nbit_reg #(DATA_SIZE) MemoryDataRegister (mem_data, mdr_out, 1'b1, reset, clk);
+	nbit_reg #(DATA_SIZE) MemoryDataRegister (mem_data,		// Input
+															mdr_out,			// Output
+															1'b1, reset, clk);
 	
 	// write_data mux
-	TwoOneMux #(DATA_SIZE) MemtoRegMux(write_data, mdr_out, ALUOut, MemtoReg);
+	TwoOneMux #(DATA_SIZE) MemtoRegMux(write_data,				// Output
+													ALUOut,					// Input 0
+													mdr_out,					// Input 1
+													MemtoReg);				// Control line
 	
 	// Register file
 	nbit_register_file #(DATA_SIZE) RegisterFile(write_data,									// Input
 																read_data_1, read_data_2,				// Output
 																IReg_out[20:16], IReg_out[15:11],	// Input (r2(5), r3(5))
 																IReg_out[25:21],							// Input: write_register: r1(5) always bits 25-21
-																RegWrite, clk);
+																RegWrite, clk,
+																LUI);											// LUI control for writing to reg
 	
 	// Register A
 	nbit_reg #(DATA_SIZE) RegA (read_data_1,						// Input

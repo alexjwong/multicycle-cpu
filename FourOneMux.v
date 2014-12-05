@@ -35,6 +35,6 @@ module FourOneMux(out, a, b, c, d, sel);
 		else if (sel == 2'b10)
 			out <= c;
 		else if (sel == 2'b11)
-			out <= c;
+			out <= d;
 
 endmodule

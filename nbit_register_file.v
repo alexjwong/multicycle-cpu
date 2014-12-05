@@ -21,12 +21,12 @@
 module nbit_register_file(write_data, 
                           read_data_1, read_data_2, 
                           read_sel_1, read_sel_2, 
-                          write_address, RegWrite, clk);
+                          write_address, RegWrite, clk, LUI);
                           
     parameter data_width = 32;
     parameter select_width = 5; 
                           
-    input                                       clk, RegWrite;
+    input                                       clk, RegWrite, LUI;
     input           [data_width-1:0]            write_data;
     input           [4:0]                       read_sel_1, read_sel_2, write_address;
     output		     [data_width-1:0]            read_data_1, read_data_2;
@@ -47,7 +47,13 @@ module nbit_register_file(write_data,
 
     
     always @ (posedge clk) begin
-        if (RegWrite) 
-            register_file[write_address] <= write_data;
+        if (RegWrite) begin
+				if (LUI) begin
+					register_file[write_address] <= write_data<<16 | (register_file[write_address] & 32'b0000_0000_0000_0000_1111_1111_1111_1111);
+				end
+				else
+					register_file[write_address] <= write_data;
+		  end
+		  
     end
 endmodule

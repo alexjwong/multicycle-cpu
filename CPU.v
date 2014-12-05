@@ -18,16 +18,17 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module CPU(instr_in, state, next_state, clk, reset,
-				PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-				PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst,
-				ALUOut, PCAddress);
+module CPU(IReg_out, state, next_state, clk, reset,
+				PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+				PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI,
+				ALUOut, PCAddress,
+				alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out);
 
 	input clk, reset;
 	
 	// Control Lines
-	output		PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, RegDst;
+	output		PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+					ALUSrcA, RegWrite, BranchType, LUI;
 	output		[1:0] PCSource, ALUSrcB;
 	output		[3:0] ALUOp;
 	
@@ -35,23 +36,22 @@ module CPU(instr_in, state, next_state, clk, reset,
 	output		[3:0] state, next_state;
 	
 	// Data outputs
-	output		[31:0] instr_in;
+	output		[31:0] IReg_out;
 	output		[31:0] ALUOut;
 	output		[31:0] PCAddress;
-	
-	wire [31:0] IMem_reg;
-
+	output		[31:0] alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out;
 	
 	
 	// Initialize the controller and the datapath that constitute the CPU
 	controller Controller(state, next_state, clk, reset,
-						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType,
-						instr_in);
+						PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI,
+						IReg_out);
 						
-	datapath Datapath(instr_in, IMem_reg, PCAddress, ALUOut, clk, reset,
-						PCWrite, PCWriteCond, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
-						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, RegDst, BranchType);
+	datapath Datapath(IReg_out, PCAddress, ALUOut, clk, reset,
+						PCWrite, IorD, MemRead, MemWrite, IRWrite, MemtoReg,
+						PCSource, ALUOp, ALUSrcB, ALUSrcA, RegWrite, BranchType, LUI,
+						alu_src_a, alu_src_b, write_data, IMem_out, se_out, ze_out, ALU_out);
 
 
 endmodule

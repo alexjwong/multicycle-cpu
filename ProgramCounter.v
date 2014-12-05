@@ -18,16 +18,15 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module ProgramCounter(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
+module ProgramCounter(PCAddress, PCWrite, BranchType, Branch, PC_in, clk, reset);
 
 	input			clk, reset;
-	input			PCWrite, PCWriteCond;
+	input			PCWrite, BranchType, Branch;
 	input			[31:0] PC_in;									// Predetermined PC input (output of the PCSource mux)
 	
 	output reg	[31:0] PCAddress;
 	
-	and (PCWriteCondandBranch, PCWriteCond, 1'b1);
-	or (PCWriteorBranch, PCWriteCondandBranch, PCWrite);
+	// If branch is false, we don't want to write the PC (PCWrite enabled on branch for when Branch is true)
 	
 	initial begin
 		PCAddress = 0;
@@ -38,8 +37,15 @@ module ProgramCounter(PCAddress, PCWrite, PCWriteCond, PC_in, clk, reset);
 			PCAddress = 0;
 		end
 		else begin
-			if (PCWriteorBranch) begin
-				PCAddress = PC_in;
+			if (BranchType) begin		// A branch instruction asserted
+				if (Branch) begin			// Branch Condition found true
+					PCAddress = PC_in;	// Allow PC to be incremented by PC_in
+				end
+			end
+			else if (BranchType == 0) begin		// If No branch instruction
+				if (PCWrite) begin					// Behave normally (check PCWrite)
+					PCAddress = PC_in;
+				end
 			end
 			else begin
 				PCAddress = PCAddress;
