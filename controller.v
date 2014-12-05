@@ -69,7 +69,7 @@ module controller(state, next_state, clk, reset,
 					RegWrite		<= 0;
 					BranchType	<= 3'b000;
 					LUI			<= 0;
-					SWB			<= 0;
+					SWB			<= 0;			// Reset store word/branch flag
 					
 					// PC GETS INCREMENTED AFTER STATE 0!! ALWAYS!!
 				
