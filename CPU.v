@@ -28,8 +28,9 @@ module CPU(IReg_out, state, next_state, clk, reset,
 	
 	// Control Lines
 	output		PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, BranchType, LUI, SWB, Branch;
+					ALUSrcA, RegWrite, LUI, SWB, Branch;
 	output		[1:0] PCSource, ALUSrcB;
+	output		[2:0] BranchType;
 	output		[3:0] ALUOp;
 	
 	// State

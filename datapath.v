@@ -29,8 +29,9 @@ module datapath(IReg_out, PCAddress, ALUOut, clk, reset,
 	
 	// Control Lines
 	input			PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
-					ALUSrcA, RegWrite, BranchType, LUI, SWB;
+					ALUSrcA, RegWrite, LUI, SWB;
 	input			[1:0] PCSource, ALUSrcB;
+	input			[2:0] BranchType;
 	input			[3:0] ALUOp;
 	
 	// Data wires

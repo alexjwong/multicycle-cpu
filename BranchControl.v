@@ -23,7 +23,7 @@ module BranchControl(Branch, regA_out, regB_out, BranchType, clk);
 	parameter	word_size = 32;		// word_size default value = 32	
 
 	input			clk;
-	input			BranchType;
+	input			[2:0] BranchType;
 	input			[word_size-1:0] regA_out, regB_out;
 	// output reg [1:0] PC_source;
 	output reg Branch;
@@ -53,7 +53,10 @@ module BranchControl(Branch, regA_out, regB_out, BranchType, clk);
 	
 	always @ (BranchType) begin
 		case(BranchType)
-			1: if (regA_out == regB_out) Branch = 1; // Right now BranchType = 1 = BEQ, add more support later
+			3'b001: if (regA_out == regB_out) Branch = 1; // 1 = BEQ
+			3'b010: if (regA_out != regB_out) Branch = 1; // 2 = BNE
+			3'b011: if (regA_out < regB_out) Branch = 1;	// 3 = BLT
+			3'b100: if (regA_out <= regB_out) Branch = 1; // 4 = BLE
 			default: Branch = 0;
 		endcase
 	end

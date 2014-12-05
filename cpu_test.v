@@ -35,7 +35,7 @@ module cpu_test;
 	wire [3:0] next_state;
 	wire [31:0] PCAddress;
 	wire PCWrite;
-	wire BranchType;
+	wire [2:0] BranchType;
 	wire MemRead;
 	wire MemWrite;
 	wire IRWrite;

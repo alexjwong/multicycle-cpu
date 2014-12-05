@@ -30,7 +30,7 @@ module IMem(PC,          // PC (address) of instruction in IMem
 		parameter PROG_LENGTH= 22;
 	`else
 	`ifdef PROGRAM_2
-		parameter PROG_LENGTH= 31;
+		parameter PROG_LENGTH= 35;
 	`else
 	`ifdef PROGRAM_3
 		parameter PROG_LENGTH= 12;
@@ -236,6 +236,14 @@ module IMem(PC,          // PC (address) of instruction in IMem
 			30: Instruction= 32'b000001_00000_00000_0000000000011100;
 			// LI $R22, 0xFFFF - indicate loop finished
 			31: Instruction= 32'b111001_10110_00000_1111111111111111;
+			// BNE $R20, $21, 35 - will not branch b/c they should be the same
+			32: Instruction= 32'b100000_10100_10101_0000000000100011;
+			// BNE $R20, $21, 35 - will branch
+			33: Instruction= 32'b100000_10100_10101_0000000000100011;
+			// NOOP
+			34: Instruction= 32'b000000_00000_00000_0000000000000000;
+			// LI $R23, 0xFFFF
+			35: Instruction= 32'b111001_10111_00000_1111111111111111;
 			
 		`else
 		//-----------------------------------------------------

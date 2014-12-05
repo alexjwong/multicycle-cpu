@@ -31,7 +31,8 @@ module controller(state, next_state, clk, reset,
 	output reg	[3:0]		state, next_state;
 	output reg				PCWrite, MemRead, MemWrite, IRWrite, MemtoReg,
 								ALUSrcA, RegWrite, LUI, SWB;
-	output reg	[1:0]		PCSource, ALUSrcB, BranchType;
+	output reg	[1:0]		PCSource, ALUSrcB;
+	output reg  [2:0]    BranchType;
 	output reg	[3:0]		ALUOp;
 	
 	initial begin
@@ -66,7 +67,7 @@ module controller(state, next_state, clk, reset,
 					ALUSrcB		<= 2'b01;	// +1
 					ALUSrcA		<= 0;			// Current PC
 					RegWrite		<= 0;
-					BranchType	<= 2'b00;
+					BranchType	<= 3'b000;
 					LUI			<= 0;
 					SWB			<= 0;
 					
@@ -150,7 +151,15 @@ module controller(state, next_state, clk, reset,
 				// State 5: Branch completion
 				4'd5: begin
 					PCWrite		<= 1;						// Write after this state
-					BranchType	<= 2'b01;				// BranchControl controls Branch logic and PCSource
+					// BranchControl controls Branch logic and PCSource
+					if (instr_in[29:26] == 4'b0000)
+						BranchType	<= 3'b001;					// BEQ
+					else if (instr_in[29:26] == 4'b0001)
+						BranchType	<= 3'b010;					// BNE
+					else if (instr_in[29:26] == 4'b0010)
+						BranchType	<= 3'b011;					// BLT
+					else if (instr_in[29:26] == 4'b0011)
+						BranchType	<= 3'b100;					// BLE
 
 					next_state = 0;
 				end

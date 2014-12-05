@@ -22,7 +22,7 @@ module ProgramCounter(PCAddress, PCWrite, BranchType, Branch, PC_in, clk, reset)
 
 	input			clk, reset;
 	input			PCWrite, Branch;
-	input			BranchType;
+	input			[2:0] BranchType;
 	input			[31:0] PC_in;									// Predetermined PC input (output of the PCSource mux)
 	
 	output reg	[31:0] PCAddress;
@@ -43,7 +43,7 @@ module ProgramCounter(PCAddress, PCWrite, BranchType, Branch, PC_in, clk, reset)
 					PCAddress = PC_in;	// Allow PC to be incremented by PC_in
 				end
 			end
-			else if (BranchType == 0) begin		// If No branch instruction
+			else if (BranchType == 3'b000) begin		// If No branch instruction
 				if (PCWrite) begin					// Behave normally (check PCWrite)
 					PCAddress = PC_in;
 				end
